@@ -12,8 +12,6 @@ class Handler():
         # TIP:if you return 0 , destroy, but if you return 1, stop , not kill program
         # TODO: Here create dialog ask if I want exit program
 
-        return 0
-
 class Principal:
     """
     Contiene toda la funcionalidad principal
@@ -31,17 +29,18 @@ class Principal:
 
         # Example connect manual signal.
         self.window.connect("destroy", self.destroy)
+        self.window.connect("key-press-event", self.on_key_press_event )
 
         # From Glade, signal delete_event the window consultas,  at class Handler.
-        #self.glade.connect_signals( Handler() )
+        # self.glade.connect_signals( Handler() )
         self.glade.connect_signals( self )
 
         self.status_bar()
-        self.status_setText( "Database en uso:" + self.database )
+        self.status_setText( "Database in use:" + self.database )
 
         self.view_lista   = self.glade.get_object('treeview_consulta')
         self.textview_sql = self.glade.get_object('textview_ordenes')
-        #self.setQuery()
+        self.textview_sql.grab_focus()
 
         self.window.show()
 
@@ -53,28 +52,29 @@ class Principal:
         self.status_bar.pop(self.context_id)
         self.status_bar.push( self.context_id, cText)
 
-    def execute_sql(self,widget, data=None):
-        textbuffer = self.textview_sql.get_buffer()
-        self.cSql = textbuffer.get_text(*textbuffer.get_bounds())
-
+    def execute_sql(self, widget, data=None):
         self.setQuery()
 
     def setQuery(self):
         elements = 0
 
-        #self.cSql = "select nombre,fax,telefono from cliente"
+        self.status_setText( "Database in use:" + self.database )
+        textbuffer = self.textview_sql.get_buffer()
+        self.cSql = textbuffer.get_text(*textbuffer.get_bounds())
 
+        # remove columns the old view
         nOld_Fields = self.getTotalColumns()
-        if nOld_Fields != 0:  # Si hay columnas, las matamos
+        if nOld_Fields != 0:
             for column in self.view_lista.get_columns():
                 self.view_lista.remove_column( column )
 
-        oModel = self.view_lista.get_model()  # devuelve un modelo de datos
+        #Clear model data of view
+        oModel = self.view_lista.get_model()
         if oModel != None:
             oModel.clear()
-
         self.view_lista.set_model()
 
+        #Execute Sql
         cursor = self.db.cursor()
         try:
             cursor.execute(self.cSql)
@@ -84,18 +84,18 @@ class Principal:
             return
 
         num_fields = len(cursor.description)
+        field_names = [i[0] for i in cursor.description] # Name of fields
 
-        field_names = [i[0] for i in cursor.description]  # nombre de los campos
+        #Create Columns from names fields
         i = 0
         for nombre in field_names:
             self.AddListColumn(nombre, i)
             i = i + 1
 
-        #Manera de crear un modelo de datos tipo str dinamicamente
+        #Create model dinamic of types str for view
         ListStore = gtk.ListStore(*([str] * num_fields))
         for value in result:
             ListStore.append(value)
-
         self.view_lista.set_model(ListStore)
 
     def AddListColumn(self, title, columnId):
@@ -112,9 +112,24 @@ class Principal:
     def getTotalColumns(self):
         return len(self.view_lista.get_columns())
 
+    def on_key_press_event(self, widget, event):
+        keyname = gtk.gdk.keyval_name(event.keyval)
 
+        if keyname == "F5":
+            self.setQuery()
+            return 1
 
     def delete_event(self, widget,data=None):
+        messagedialog = gtk.MessageDialog(self.window, 0, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO)
+        messagedialog.set_markup("<b>%s</b>" % "Hi pythoniso!")
+        messagedialog.format_secondary_markup("Why Do you exit the program ? Why ??")
+        response = messagedialog.run()
+        messagedialog.destroy()
+        if response == gtk.RESPONSE_YES:
+            return 0
+        elif response == gtk.RESPONSE_NO:
+            return 1
+
         print( "delete-event from self" )
 
     # Salimos de la aplicacion
