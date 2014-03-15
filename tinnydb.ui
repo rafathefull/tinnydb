@@ -277,9 +277,10 @@
   </object>
   <object class="GtkWindow" id="consultas">
     <property name="title" translatable="yes">TinnyDb Python</property>
-    <property name="window_position">center-on-parent</property>
+    <property name="window_position">center-always</property>
     <property name="default_width">1024</property>
     <property name="default_height">768</property>
+    <property name="icon">py4fun.png</property>
     <signal name="delete_event" handler="delete_event"/>
     <child>
       <object class="GtkVBox" id="vbox1">
@@ -295,6 +296,7 @@
                 <property name="label" translatable="yes">F5 Execute</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-refresh</property>
+                <signal name="clicked" handler="execute_sql"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -304,51 +306,98 @@
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="position">0</property>
+            <property name="padding">2</property>
+            <property name="position">1</property>
           </packing>
         </child>
         <child>
           <object class="GtkHPaned" id="hpaned1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="position">800</property>
+            <property name="position_set">True</property>
             <child>
               <object class="GtkVBox" id="vbox2">
                 <property name="visible">True</property>
                 <property name="spacing">2</property>
                 <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindow2">
+                  <object class="GtkFrame" id="frame1">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="label_xalign">0</property>
+                    <property name="shadow_type">in</property>
                     <child>
-                      <object class="GtkTextView" id="textview_ordenes">
+                      <object class="GtkAlignment" id="alignment1">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="left_margin">4</property>
+                        <property name="left_padding">12</property>
+                        <child>
+                          <object class="GtkScrolledWindow" id="scrolledwindow2">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="hscrollbar_policy">automatic</property>
+                            <property name="vscrollbar_policy">automatic</property>
+                            <child>
+                              <object class="GtkTextView" id="textview_ordenes">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="left_margin">4</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child type="label">
+                      <object class="GtkLabel" id="label2">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">&lt;b&gt;Sentencia SQL&lt;/b&gt;</property>
+                        <property name="use_markup">True</property>
                       </object>
                     </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="padding">3</property>
+                    <property name="fill">False</property>
+                    <property name="padding">2</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindow3">
+                  <object class="GtkFrame" id="frame2">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="label_xalign">0</property>
+                    <property name="shadow_type">in</property>
                     <child>
-                      <object class="GtkTreeView" id="treeview_consulta">
+                      <object class="GtkAlignment" id="alignment2">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
+                        <property name="left_padding">12</property>
+                        <child>
+                          <object class="GtkScrolledWindow" id="scrolledwindow3">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="hscrollbar_policy">automatic</property>
+                            <property name="vscrollbar_policy">automatic</property>
+                            <child>
+                              <object class="GtkTreeView" id="treeview_consulta">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="reorderable">True</property>
+                                <property name="rules_hint">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child type="label">
+                      <object class="GtkLabel" id="label4">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">&lt;b&gt;Resultado&lt;/b&gt;</property>
+                        <property name="use_markup">True</property>
                       </object>
                     </child>
                   </object>
                   <packing>
+                    <property name="padding">2</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
@@ -421,18 +470,21 @@
             </child>
           </object>
           <packing>
-            <property name="padding">5</property>
-            <property name="position">0</property>
+            <property name="padding">3</property>
+            <property name="position">1</property>
           </packing>
         </child>
         <child>
           <object class="GtkStatusbar" id="statusbar">
+            <property name="height_request">21</property>
             <property name="visible">True</property>
             <property name="spacing">2</property>
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="position">2</property>
+            <property name="padding">3</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
           </packing>
         </child>
       </object>

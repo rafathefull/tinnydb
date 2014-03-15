@@ -61,9 +61,9 @@ class Login:
         self.window.show()
 
     def OpenDB(self):
-        elhost = self.entry_server.get_text()
-        bbdd   = self.entry_bd.get_text()
-        self.db = MySQLdb.connect( host=elhost, user=self.entry_user.get_text(), passwd=self.entry_pass.get_text(), db=bbdd )
+        self.elhost = self.entry_server.get_text()
+        self.database   = self.entry_bd.get_text()
+        self.db = MySQLdb.connect( host=self.elhost, user=self.entry_user.get_text(), passwd=self.entry_pass.get_text(), db=self.database )
 
     def Conectando(self, widget, data=None):
         self.label.set_label( "Informacion" )

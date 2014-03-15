@@ -18,5 +18,5 @@ if __name__ == "__main__":
 
     if oLogin.conectado:
         #Continuamos con el programa principal si se pudo loguear en la BD
-        oPrincipal = principal.Principal( oLogin.db, glade )
+        oPrincipal = principal.Principal( oLogin, glade )
         oPrincipal.main()
