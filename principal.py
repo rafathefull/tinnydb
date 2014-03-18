@@ -1,3 +1,5 @@
+from cgitb import text
+
 __author__ = 'rafa'
 
 import pygtk
@@ -18,7 +20,6 @@ class Principal:
     """
 
     def __init__(self, oLogin=None, glade=None ):
-
         self.db = oLogin.db
         self.cSql = None
         self.glade = glade
@@ -38,11 +39,66 @@ class Principal:
         self.status_bar()
         self.status_setText( "Database in use:" + self.database )
 
-        self.view_lista   = self.glade.get_object('treeview_consulta')
+        self.view_lista = self.glade.get_object('treeview_consulta')
         self.textview_sql = self.glade.get_object('textview_ordenes')
         self.textview_sql.grab_focus()
 
+        self.view_tree = self.glade.get_object('treeview_tables') #ON ROW ACTIVATED Activa( path, TreeViewColumn, oTextView, oServer, oBar,  oTreeView )
+        self.mount_treeview()
+
         self.window.show()
+
+    def mount_treeview(self):
+        pbd_bd = gtk.gdk.pixbuf_new_from_file("./images/bd.png")
+        pbd_table = gtk.gdk.pixbuf_new_from_file("./images/table.png")
+        pbd_field = gtk.gdk.pixbuf_new_from_file("./images/field.png")
+
+        #Preguntamos por la BDs
+        sql = "Select schema_name From `INFORMATION_SCHEMA`.`SCHEMATA`"
+        cursor = self.db.cursor()
+        try:
+            cursor.execute(sql)
+            result_db = cursor.fetchall()
+        except MySQLdb.Error, e:
+            self.status_setText( "Error %d: %s" % (e.args[0], e.args[1]) )
+            return
+
+        self.treestore = gtk.TreeStore(gtk.gdk.Pixbuf, str)
+
+        for bd in result_db:
+            iter = self.treestore.append(None,[pbd_bd, bd[0]] )
+            cursor1 = self.db.cursor()
+            try:
+                cursor1.execute( "show tables from " + bd[0])
+                result_table = cursor1.fetchall()
+            except MySQLdb.Error, e:
+                self.status_setText( "Error %d: %s" % (e.args[0], e.args[1]) )
+                return
+            for table in result_table:
+                iterchild = self.treestore.append(iter,[pbd_table, table[0] ] )
+                cursor2 = self.db.cursor()
+                try:
+                    cursor2.execute( "show columns from " + bd[0] + "." + table[0])
+                    result_field = cursor2.fetchall()
+                except MySQLdb.Error, e:
+                    self.status_setText( "Error %d: %s" % (e.args[0], e.args[1]) )
+                    return
+                for field in result_field:
+                    self.treestore.append(iterchild,[pbd_field, field[0] ] )
+            if cursor2 != None:
+                cursor2.close()
+        if cursor1 != None:
+            cursor1.close()
+
+        cursor.close()
+
+        #Create Columns from names fields
+        column = gtk.TreeViewColumn( "", gtk.CellRendererPixbuf(), pixbuf=0)
+        self.view_tree.append_column( column )
+        column = gtk.TreeViewColumn( "Database", gtk.CellRendererText(), text=1 )
+        self.view_tree.append_column( column )
+
+        self.view_tree.set_model( self.treestore )
 
     def status_bar(self):
         self.status_bar = self.glade.get_object( "statusbar")
@@ -83,6 +139,16 @@ class Principal:
             self.status_setText( "Error %d: %s" % (e.args[0], e.args[1]) )
             return
 
+        if  len(result)  == 0:  # if you use command, example USE TABLE, clean text
+            textbuffer.set_text("")
+            cur = self.db.cursor()
+            cur.execute("SELECT DATABASE()")
+            self.database = cur.fetchone()[0]
+            self.status_setText( "Database in use:" + self.database )
+            cur.close()
+            cursor.close()
+            return
+
         num_fields = len(cursor.description)
         field_names = [i[0] for i in cursor.description] # Name of fields
 
@@ -97,6 +163,8 @@ class Principal:
         for value in result:
             ListStore.append(value)
         self.view_lista.set_model(ListStore)
+        cursor.close()
+
 
     def AddListColumn(self, title, columnId):
         column = gtk.TreeViewColumn(title, gtk.CellRendererText(), text=columnId)
@@ -108,6 +176,9 @@ class Principal:
         column = gtk.TreeViewColumn(title, gtk.CellRendererPixbuf(), pixbuf=columnId)
         self.view_lista.append_column( column )
 
+    def AddColumnPixbufTree(self, title, columnId):
+        column = gtk.TreeViewColumn(title, gtk.CellRendererPixbuf(), pixbuf=columnId)
+        self.treestore.append_column( column )
 
     def getTotalColumns(self):
         return len(self.view_lista.get_columns())
@@ -129,8 +200,6 @@ class Principal:
             return 0
         elif response == gtk.RESPONSE_NO:
             return 1
-
-        print( "delete-event from self" )
 
     # Salimos de la aplicacion
     def destroy(self, widget, data=None):
